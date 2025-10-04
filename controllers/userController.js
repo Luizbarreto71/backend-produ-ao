@@ -1,0 +1,63 @@
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const user = new User({ name, email, password });
+
+    await user.save();
+    res.status(201).json({ userId: user._id });
+  } catch (error) {
+    console.error('Erro ao registrar usuário:', error);
+    res.status(400).json({ error: 'Erro ao registrar usuário' });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'default_secret',
+      { expiresIn: '1h' }
+    );
+
+    const { password: _, ...userData } = user.toObject();
+
+    res.json({ user: userData, token });
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    res.status(500).json({ error: 'Erro ao fazer login' });
+  }
+};
+
+const checkUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    res.json({ isPaid: user.isPaid });
+  } catch (error) {
+    console.error('Erro ao verificar status:', error);
+    res.status(500).json({ error: 'Erro ao verificar status' });
+  }
+};
+
+module.exports = { registerUser, checkUserStatus, loginUser };
