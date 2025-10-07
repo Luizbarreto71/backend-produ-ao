@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['https://mindkidss.com', 'http://localhost:5173'],
+    origin: ['https://mindkidss.com', 'https://www.mindkidss.com', 'http://localhost:5173'],
     methods: ['GET', 'POST'],
     credentials: true,
   })
