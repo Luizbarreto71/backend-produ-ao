@@ -87,14 +87,35 @@ const getUserProfile = async (req, res) => {
         return res.status(500).json({ error: 'Erro interno ao buscar perfil.' });
     }
 };
+// userController.js (Adicione esta função)
+
+const verifyToken = (req, res, next) => {
+    // 1. Pega o token do cabeçalho de autorização
+    const token = req.header('Authorization')?.replace('Bearer ', ''); 
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
+    }
+
+    try {
+        // 2. Verifica o token (baseado na sua chave 'userId' no login)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+        
+        // 3. Salva o ID na requisição, que será usado por getUserProfile
+        req.userId = decoded.userId; 
+        
+        next(); 
+    } catch (ex) {
+        res.status(400).json({ error: 'Token inválido.' });
+    }
+};
 
 module.exports = { 
     registerUser, 
     checkUserStatus, 
     loginUser,
-    getUserProfile,
-    verifyToken
-
+    getUserProfile, // Para buscar o perfil
+    verifyToken     // Para proteger a rota de perfil
 };
 
-module.exports = { registerUser, checkUserStatus, loginUser };
+
