@@ -92,7 +92,9 @@ module.exports = {
     registerUser, 
     checkUserStatus, 
     loginUser,
-    getUserProfile // <--- Exporte a nova função
+    getUserProfile,
+     verifyToken
+    
 };
 
 module.exports = { registerUser, checkUserStatus, loginUser };
