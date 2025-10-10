@@ -10,5 +10,6 @@ const {
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/status/:userId', checkUserStatus);
+router.get('/profile', verifyToken, userController.getUserProfile);
 
 module.exports = router;
