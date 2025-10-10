@@ -115,7 +115,7 @@ module.exports = {
     checkUserStatus, 
     loginUser,
     getUserProfile, // Para buscar o perfil
-    verifyToken     // Para proteger a rota de perfil
+    verifyToken  // Para proteger a rota de perfil
 };
 
 
