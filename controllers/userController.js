@@ -93,8 +93,8 @@ module.exports = {
     checkUserStatus, 
     loginUser,
     getUserProfile,
-     verifyToken
-    
+    verifyToken
+
 };
 
 module.exports = { registerUser, checkUserStatus, loginUser };
