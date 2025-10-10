@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User'); 
+
 
 const registerUser = async (req, res) => {
   try {
@@ -58,6 +60,39 @@ const checkUserStatus = async (req, res) => {
     console.error('Erro ao verificar status:', error);
     res.status(500).json({ error: 'Erro ao verificar status' });
   }
+};
+
+const getUserProfile = async (req, res) => {
+    try {
+        // ASSUMIMOS que o middleware salva o ID aqui, com base na chave do token (userId)
+        const userId = req.userId; 
+
+        if (!userId) {
+            // Isso acontece se o verifyToken falhar ou não adicionar o ID
+            return res.status(401).json({ error: 'Acesso negado: ID de usuário ausente.' });
+        }
+
+        // Busca o usuário, excluindo a senha
+        const user = await User.findById(userId).select('-password'); 
+
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+
+        // Retorna o objeto do usuário completo (incluindo isPaid)
+        return res.status(200).json({ user });
+
+    } catch (error) {
+        console.error('Erro ao buscar perfil do usuário:', error);
+        return res.status(500).json({ error: 'Erro interno ao buscar perfil.' });
+    }
+};
+
+module.exports = { 
+    registerUser, 
+    checkUserStatus, 
+    loginUser,
+    getUserProfile // <--- Exporte a nova função
 };
 
 module.exports = { registerUser, checkUserStatus, loginUser };
