@@ -14,22 +14,18 @@ const createPayment = async (req, res) => {
 
     const preference = new Preference(client);
 
-    const body = {
-      items: [
-        {
-          title,
-          unit_price: Number(price),
-          quantity: Number(quantity),
-        },
-      ],
-      back_urls: {
-        success: process.env.MP_BACK_URL_SUCCESS,
-        failure: process.env.MP_BACK_URL_FAILURE,
-        pending: process.env.MP_BACK_URL_PENDING,
-      },
-      auto_return: 'approved',
-      external_reference: userId,
-    };
+   // controllers/paymentController.js
+const body = {
+  items: [{ title, unit_price: Number(price), quantity: Number(quantity) }],
+  back_urls: {
+    success: `${process.env.BACKEND_URL}/api/payments/payment-return`,
+    failure: `${process.env.BACKEND_URL}/api/payments/payment-return`,
+    pending: `${process.env.BACKEND_URL}/api/payments/payment-return`,
+  },
+  auto_return: 'approved',
+  external_reference: userId,
+};
+
 
     const response = await preference.create({ body });
     res.json({ init_point: response.init_point });
