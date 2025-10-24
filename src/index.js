@@ -25,7 +25,7 @@ app.use(
       process.env.FRONTEND_URL, // exemplo: https://mindkidss.com
       'https://mindkidss.com',
       'https://www.mindkidss.com',
-      'http://localhost:5173',
+      'http://localhost:5174',
     ].filter(Boolean), // remove undefined
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
