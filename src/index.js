@@ -44,8 +44,9 @@ app.options('*', cors());
 app.use(express.json());
 
 // ====== ROTAS ======
-const paymentRoutes = require('./routes/paymentRoutes'); // <- ./ e não ../
-const userRoutes    = require('./routes/userRoutes');    // <- ./ e não ../
+const paymentRoutes = require('../routes/paymentRoutes'); // <- ./ e não ../
+const userRoutes    = require('../routes/userRoutes');    // <- ./ e não ../
+const childRoutes   = require('../routes/childRoutes');
 
 app.use('/api/payments', paymentRoutes);
 app.use('/api/users',    userRoutes);
