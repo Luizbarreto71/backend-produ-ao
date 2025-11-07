@@ -1,3 +1,4 @@
+// models/Child.js
 const mongoose = require('mongoose');
 
 const childSchema = new mongoose.Schema(
@@ -9,6 +10,7 @@ const childSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// índice único por usuário + nome
 childSchema.index({ user: 1, name: 1 }, { unique: true });
 
 module.exports = mongoose.model('Child', childSchema);
