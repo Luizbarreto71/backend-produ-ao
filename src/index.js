@@ -1,31 +1,34 @@
-// src/index.js ou server/index.js
-// server/index.js (Render)
+// src/index.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 
+// Carrega variáveis de ambiente (.env)
 dotenv.config();
+
+// Conexão MongoDB
 connectDB();
 
 const app = express();
+
+// Necessário no Render para redirecionamentos HTTPS e IP correto
 app.set('trust proxy', 1);
 
-// ====== CORS ======
+/* ==============  C O R S  ================= */
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,        // ex.: https://mindkidss.com
   'https://mindkidss.com',
   'https://www.mindkidss.com',
-  'http://localhost:5173',         // <- LIBERAR O DEV AQUI!
+  'http://localhost:5173',         // dev local do Vite
 ].filter(Boolean);
 
-// (opcional) log para diagnóstico
 console.log('[CORS] ALLOWED_ORIGINS =>', ALLOWED_ORIGINS);
 
 app.use(
   cors({
     origin(origin, cb) {
-      // permite curl/postman (origin null) e as origins da lista
+      // permite curl/postman (origin null) e as origins liberadas
       if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
       console.warn('[CORS] BLOQUEADO:', origin);
       return cb(new Error(`CORS bloqueado para origem: ${origin}`));
@@ -37,22 +40,25 @@ app.use(
   })
 );
 
-// responde preflight para qualquer rota
+// responde a preflights para qualquer rota
 app.options('*', cors());
 
-// ====== BODY PARSER ======
-app.use(express.json());
+/* ============  P A R S E R S  ============= */
+app.use(express.json({ limit: '1mb' }));
 
-// ====== ROTAS ======
-const paymentRoutes = require('../routes/paymentRoutes'); // <- ./ e não ../
-const userRoutes    = require('../routes/userRoutes');    // <- ./ e não ../
-const childRoutes   = require('../routes/childRoutes');
+/* ==============  R O T A S  =============== */
+// IMPORTS — como o index.js está em src/, usa ../routes/...
+const paymentRoutes = require('../routes/paymentRoutes');
+const userRoutes    = require('../routes/userRoutes');
+const childRoutes   = require('../routes/childRoutes'); // ⭐ perfis de crianças
 
+// MOUNT
 app.use('/api/payments', paymentRoutes);
 app.use('/api/users',    userRoutes);
+app.use('/api/children', childRoutes); // ⭐ AGORA ESTÁ EXPONDO /api/children
 
-// healthcheck
-app.get('/health', (req, res) => {
+// Healthcheck
+app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
     message: 'MindKids API online 🚀',
@@ -60,7 +66,12 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ====== START ======
+// Opcional: rota raiz só para ver que está vivo
+app.get('/', (_req, res) => {
+  res.status(200).send('MindKids API — OK');
+});
+
+/* ============  S E R V I D O R  ============ */
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log('✅ MindKids API rodando!');
