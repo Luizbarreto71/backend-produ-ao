@@ -5,52 +5,78 @@ exports.listChildren = async (req, res) => {
   try {
     if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
 
+    console.log('[listChildren] userId =', req.userId);
+
     const items = await Child.find({ userId: req.userId }).sort({ createdAt: 1 });
+    console.log(`[listChildren] encontrados ${items.length} perfis`);
     return res.json(items);
   } catch (e) {
-    console.error('listChildren:', e);
+    console.error('[listChildren] Erro:', e);
     return res.status(500).json({ error: 'Erro ao listar perfis' });
   }
 };
 
 exports.createChild = async (req, res) => {
   try {
-    if (!req.userId) return res.status(401).json({ error: 'Não autenticado' });
+    // 🔍 Log de tudo que chega
+    console.log('==============================');
+    console.log('[createChild] Requisição recebida');
+    console.log('[createChild] Headers:', req.headers);
+    console.log('[createChild] userId:', req.userId);
+    console.log('[createChild] Body recebido:', req.body);
+    console.log('==============================');
 
-    const { name, age } = req.body;
-    if (!name || !name.trim()) {
+    if (!req.userId) {
+      console.warn('[createChild] ❌ Falha: Token ausente ou inválido');
+      return res.status(401).json({ error: 'Não autenticado' });
+    }
+
+    const { name, age } = req.body || {};
+
+    if (!name || !String(name).trim()) {
+      console.warn('[createChild] ❌ Falha: Nome é obrigatório');
       return res.status(400).json({ error: 'Nome é obrigatório' });
     }
 
-    // Limite de 2 perfis por conta (mude para 1 se quiser)
+    // ✅ Limite de 1 perfil por conta
     const count = await Child.countDocuments({ userId: req.userId });
-    if (count >= 2) {
-      return res.status(403).json({ error: 'Limite de 2 perfis por conta atingido' });
+    console.log(`[createChild] Perfis existentes: ${count}`);
+    if (count >= 1) {
+      console.warn('[createChild] ❌ Limite de 1 perfil por conta atingido');
+      return res.status(403).json({ error: 'Limite de 1 perfil por conta atingido' });
     }
 
-    // Evitar duplicado por nome
-    const exists = await Child.findOne({ userId: req.userId, name: name.trim() });
+    // ✅ Evitar duplicado por nome
+    const exists = await Child.findOne({ userId: req.userId, name: String(name).trim() });
     if (exists) {
+      console.warn('[createChild] ❌ Já existe um perfil com esse nome');
       return res.status(409).json({ error: 'Já existe um perfil com esse nome' });
     }
 
+    // ✅ Criar
     const created = await Child.create({
       userId: req.userId,
-      name: name.trim(),
-      age: typeof age === 'number' ? age : undefined,
+      name: String(name).trim(),
+      ...(typeof age === 'number' ? { age } : {}),
     });
 
+    console.log('[createChild] ✅ Perfil criado com sucesso:', created);
     return res.status(201).json(created);
   } catch (e) {
-    console.error('createChild:', e?.message || e);
+    console.error('[createChild] ❌ Erro inesperado:', e);
 
-    // Erros comuns do Mongoose que viram 500: tratamos para 400
+    // Erros de validação
     if (e.name === 'ValidationError') {
+      console.warn('[createChild] ⚠️ ValidationError:', e.errors);
       return res.status(400).json({ error: 'Dados inválidos', details: e.errors });
     }
-    if (e.code === 11000) { // índice único
+
+    // Erro de duplicidade MongoDB
+    if (e.code === 11000) {
+      console.warn('[createChild] ⚠️ Perfil duplicado');
       return res.status(409).json({ error: 'Perfil duplicado' });
     }
+
     return res.status(500).json({ error: 'Erro ao criar perfil' });
   }
 };
