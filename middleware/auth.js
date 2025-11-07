@@ -1,17 +1,22 @@
-// middleware/auth.js
 const jwt = require('jsonwebtoken');
 
 module.exports = function auth(req, res, next) {
   try {
-    const header = req.header('Authorization') || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-    if (!token) return res.status(401).json({ error: 'Token ausente' });
+    const authHeader = req.headers.authorization || '';
+    const [, token] = authHeader.split(' ');
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    req.userId = decoded.userId;
-    next();
-  } catch (err) {
-    console.error('Auth error:', err.message);
-    return res.status(401).json({ error: 'Token inválido' });
+    if (!token) {
+      return res.status(401).json({ error: 'Token ausente' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // use o mesmo campo que você coloca no token no login (ex.: { id: user._id })
+    req.userId = decoded.id || decoded._id || decoded.userId;
+    if (!req.userId) return res.status(401).json({ error: 'Token inválido' });
+
+    return next();
+  } catch (e) {
+    console.error('[auth] erro:', e.message);
+    return res.status(401).json({ error: 'Não autenticado' });
   }
 };
