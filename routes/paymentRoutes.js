@@ -28,7 +28,8 @@ router.post('/webhook', async (req, res) => {
 
       if (paymentId) {
         const payment = await mercadopago.payment.findById(paymentId);
-        const status = payment.body.status; // approved, pending, rejected...
+        const status = payment.body.status; // approved,   
+        // pending, rejected...
         const userId = payment.body.external_reference; // id que você passou na preferência
 
         if (status === 'approved' && userId) {
